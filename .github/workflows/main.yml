@@ -44,6 +44,12 @@ jobs:
           :w! diff.html
           :qa!
           EOF
+          sed -i 's/\.DiffAdd\s*{[^}]*}/.DiffAdd { background-color: #ccffcc; color: #000000; padding-bottom: 1px; }/' diff.html
+          sed -i 's/\.DiffDelete\s*{[^}]*}/.DiffDelete { background-color: #ffcccc; color: #000000; padding-bottom: 1px; font-weight: bold; }/' diff.html
+          sed -i 's/\.DiffChange\s*{[^}]*}/.DiffChange { background-color: #ffffcc; color: #000000; padding-bottom: 1px; }/' diff.html
+          sed -i 's/\.DiffText\s*{[^}]*}/.DiffText { background-color: #ccffff; color: #000000; padding-bottom: 1px; font-weight: bold; }/' diff.html
+
+
 
       - name: Upload HTML diff
         uses: actions/upload-artifact@v4
