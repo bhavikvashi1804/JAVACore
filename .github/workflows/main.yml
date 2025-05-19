@@ -1,5 +1,5 @@
 # .github/workflows/compare-file.yml
-name: Compare and Save File Diff
+name: Generate HTML Diff Between Branches
 
 on:
   workflow_dispatch:
@@ -13,12 +13,12 @@ on:
         required: true
         default: 'dev'
       file_path:
-        description: 'Path of the file to compare'
+        description: 'Path to the file to compare'
         required: true
         default: 'home.txt'
 
 jobs:
-  compare-and-save:
+  html-diff:
     runs-on: ubuntu-latest
 
     steps:
@@ -28,27 +28,25 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.event.inputs.compare_branch }}
 
-      - name: Extract file from base branch
+      - name: Fetch file from base branch
         run: |
-          echo "Extracting file from base branch: ${{ github.event.inputs.base_branch }}"
           git fetch origin ${{ github.event.inputs.base_branch }}
-          git show origin/${{ github.event.inputs.base_branch }}:${{ github.event.inputs.file_path }} > base_file.txt
+          git show origin/${{ github.event.inputs.base_branch }}:${{ github.event.inputs.file_path }} > base.tmp
 
-      - name: Save file from compare branch
+      - name: Copy compare branch file
         run: |
-          echo "Saving file from compare branch: ${{ github.event.inputs.compare_branch }}"
-          cp ${{ github.event.inputs.file_path }} compare_file.txt
+          cp ${{ github.event.inputs.file_path }} compare.tmp
 
-      - name: Generate diff
+      - name: Generate diff.html via vimdiff
         run: |
-          echo "Generating diff between base_file.txt and compare_file.txt"
-          diff -u base_file.txt compare_file.txt > diff.txt || echo "Files are different."
+          vimdiff base.tmp compare.tmp << 'EOF'
+          :TOhtml
+          :w! diff.html
+          :qa!
+          EOF
 
-      - name: Upload artifacts
+      - name: Upload HTML diff
         uses: actions/upload-artifact@v4
         with:
-          name: compared-files-and-diff
-          path: |
-            base_file.txt
-            compare_file.txt
-            diff.txt
+          name: html-diff
+          path: diff.html
