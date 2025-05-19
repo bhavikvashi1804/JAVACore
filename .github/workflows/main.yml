@@ -1,5 +1,5 @@
 # .github/workflows/compare-file.yml
-name: Compare File Between Branches
+name: Compare and Save File Diff
 
 on:
   workflow_dispatch:
@@ -18,23 +18,37 @@ on:
         default: 'home.txt'
 
 jobs:
-  compare-file:
+  compare-and-save:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout compare_branch (default checked-out branch)
+      - name: Checkout compare branch
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           ref: ${{ github.event.inputs.compare_branch }}
 
-      - name: Extract file from base_branch
+      - name: Extract file from base branch
         run: |
           echo "Extracting file from base branch: ${{ github.event.inputs.base_branch }}"
           git fetch origin ${{ github.event.inputs.base_branch }}
           git show origin/${{ github.event.inputs.base_branch }}:${{ github.event.inputs.file_path }} > base_file.txt
 
-      - name: Save file from compare_branch
+      - name: Save file from compare branch
         run: |
           echo "Saving file from compare branch: ${{ github.event.inputs.compare_branch }}"
           cp ${{ github.event.inputs.file_path }} compare_file.txt
+
+      - name: Generate diff
+        run: |
+          echo "Generating diff between base_file.txt and compare_file.txt"
+          diff -u base_file.txt compare_file.txt > diff.txt || echo "Files are different."
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: compared-files-and-diff
+          path: |
+            base_file.txt
+            compare_file.txt
+            diff.txt
