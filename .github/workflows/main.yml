@@ -40,10 +40,6 @@ jobs:
       - name: Generate diff.html via vimdiff
         run: |
           vimdiff base.tmp compare.tmp << 'EOF'
-          :highlight DiffAdd    guibg=#ccffcc guifg=#000000
-          :highlight DiffDelete guibg=#ffcccc guifg=#000000
-          :highlight DiffChange guibg=#ffffcc guifg=#000000
-          :highlight DiffText   guibg=#ccffff guifg=#000000
           :TOhtml
           :w! diff.html
           :qa!
