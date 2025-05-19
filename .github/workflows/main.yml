@@ -1,24 +1,26 @@
-name: Generate Colored HTML Diff
+# .github/workflows/compare-file.yml
+name: Generate HTML Diff Between Branches
 
 on:
   workflow_dispatch:
     inputs:
       base_branch:
-        description: 'Base branch (e.g., main)'
+        description: 'Base branch to compare (e.g., main)'
         required: true
         default: 'main'
       compare_branch:
-        description: 'Compare branch (e.g., dev)'
+        description: 'Branch to compare against base'
         required: true
         default: 'dev'
       file_path:
-        description: 'File path (e.g., home.txt)'
+        description: 'Path to the file to compare'
         required: true
         default: 'home.txt'
 
 jobs:
-  diff-html:
+  html-diff:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout compare branch
         uses: actions/checkout@v4
@@ -26,29 +28,25 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.event.inputs.compare_branch }}
 
-      - name: Fetch base branch
+      - name: Fetch file from base branch
         run: |
           git fetch origin ${{ github.event.inputs.base_branch }}
+          git show origin/${{ github.event.inputs.base_branch }}:${{ github.event.inputs.file_path }} > base.tmp
 
-      - name: Save base and compare files
+      - name: Copy compare branch file
         run: |
-          git show origin/${{ github.event.inputs.base_branch }}:${{ github.event.inputs.file_path }} > base_file.txt
-          cp ${{ github.event.inputs.file_path }} compare_file.txt
+          cp ${{ github.event.inputs.file_path }} compare.tmp
 
-      - name: Generate unified diff
+      - name: Generate diff.html via vimdiff
         run: |
-          diff -u base_file.txt compare_file.txt > diff.patch || true
+          vimdiff base.tmp compare.tmp << 'EOF'
+          :TOhtml
+          :w! diff.html
+          :qa!
+          EOF
 
-      - name: Install diff2html-cli
-        run: |
-          npm install -g diff2html-cli
-
-      - name: Generate HTML diff with colors
-        run: |
-          diff2html -i file -s side -F diff.html diff.patch
-
-      - name: Upload HTML diff artifact
+      - name: Upload HTML diff
         uses: actions/upload-artifact@v4
         with:
-          name: colored-html-diff
+          name: html-diff
           path: diff.html
