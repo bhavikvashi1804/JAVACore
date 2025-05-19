@@ -22,13 +22,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout base branch
-        run: |
-          echo "Cloning the Base Branch"
-          git clone ${{ github.repositoryUrl }} repo
-          cd repo
-          git fetch origin ${{ github.event.inputs.base_branch }} ${{ github.event.inputs.compare_branch }}
-          git checkout ${{ github.event.inputs.base_branch }}
-          cp ${{ github.event.inputs.file_path }} ../base_file.txt
+      - name: Checkout compare_branch (default checked-out branch)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.inputs.compare_branch }}
 
-      
+      - name: Extract file from base_branch
+        run: |
+          echo "Extracting file from base branch: ${{ github.event.inputs.base_branch }}"
+          git fetch origin ${{ github.event.inputs.base_branch }}
+          git show origin/${{ github.event.inputs.base_branch }}:${{ github.event.inputs.file_path }} > base_file.txt
+
+      - name: Save file from compare_branch
+        run: |
+          echo "Saving file from compare branch: ${{ github.event.inputs.compare_branch }}"
+          cp ${{ github.event.inputs.file_path }} compare_file.txt
