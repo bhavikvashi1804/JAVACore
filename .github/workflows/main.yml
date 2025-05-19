@@ -1,14 +1,42 @@
-name: Manual Trigger Workflow
+# .github/workflows/compare-file.yml
+name: Compare File Between Branches
 
 on:
-  workflow_dispatch:  # Enables manual triggering
+  workflow_dispatch:
+    inputs:
+      base_branch:
+        description: 'Base branch to compare (e.g., main)'
+        required: true
+        default: 'main'
+      compare_branch:
+        description: 'Branch to compare against base'
+        required: true
+        default: 'dev'
+      file_path:
+        description: 'Path of the file to compare'
+        required: true
+        default: 'home.txt'
 
 jobs:
-  run-on-demand:
+  compare-file:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
 
-      - name: Print Hello
-        run: echo "Hello from a manually triggered workflow!"
+    steps:
+      - name: Checkout base branch
+        run: |
+          git clone ${{ github.repositoryUrl }} repo
+          cd repo
+          git fetch origin ${{ github.event.inputs.base_branch }} ${{ github.event.inputs.compare_branch }}
+          git checkout ${{ github.event.inputs.base_branch }}
+          cp ${{ github.event.inputs.file_path }} ../base_file.txt
+
+      - name: Checkout compare branch
+        run: |
+          cd repo
+          git checkout ${{ github.event.inputs.compare_branch }}
+          cp ${{ github.event.inputs.file_path }} ../compare_file.txt
+
+      - name: Compare files
+        run: |
+          echo "Diff between files:"
+          diff -u base_file.txt compare_file.txt || echo "Files differ"
