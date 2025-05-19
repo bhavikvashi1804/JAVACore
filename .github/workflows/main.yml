@@ -1,0 +1,14 @@
+name: Manual Trigger Workflow
+
+on:
+  workflow_dispatch:  # Enables manual triggering
+
+jobs:
+  run-on-demand:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Print Hello
+        run: echo "Hello from a manually triggered workflow!"
