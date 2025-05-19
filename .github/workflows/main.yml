@@ -24,19 +24,11 @@ jobs:
     steps:
       - name: Checkout base branch
         run: |
+          echo "Cloning the Base Branch"
           git clone ${{ github.repositoryUrl }} repo
           cd repo
           git fetch origin ${{ github.event.inputs.base_branch }} ${{ github.event.inputs.compare_branch }}
           git checkout ${{ github.event.inputs.base_branch }}
           cp ${{ github.event.inputs.file_path }} ../base_file.txt
 
-      - name: Checkout compare branch
-        run: |
-          cd repo
-          git checkout ${{ github.event.inputs.compare_branch }}
-          cp ${{ github.event.inputs.file_path }} ../compare_file.txt
-
-      - name: Compare files
-        run: |
-          echo "Diff between files:"
-          diff -u base_file.txt compare_file.txt || echo "Files differ"
+      
